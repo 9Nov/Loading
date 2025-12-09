@@ -1,0 +1,81 @@
+body {
+    font-family: sans-serif;
+    background-color: #f0f8ff;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #ff6f61;
+    text-align: center;
+}
+
+.input-group {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+#qrCodeInput {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+}
+
+#submitBtn {
+    padding: 10px 20px;
+    border: none;
+    background-color: #ff6f61;
+    color: white;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#submitBtn:hover {
+    background-color: #e65a50;
+}
+
+#result {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    #qrCodeInput {
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+
+    #submitBtn {
+        width: 100%;
+        border-radius: 4px;
+    }
+}
