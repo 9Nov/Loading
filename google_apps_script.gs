@@ -7,9 +7,10 @@ function doGet(e) {
   }
 
   try {
-    const sheet = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1qZSLhFloTwjB1XlcEIfDAmi3n0WXY8p93xQWNB6Bn20/edit").getSheetByName("Stock");
+    // Get the active spreadsheet and the "Stock" sheet.
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = spreadsheet.getSheetByName("Stock");
     const data = sheet.getDataRange().getValues();
-
     let found = false;
     let item, remaining;
 
