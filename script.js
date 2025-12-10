@@ -80,14 +80,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text) {
             qrCodeContainer.innerHTML = ''; // Clear previous QR code
             try {
-                const typeNumber = 4;
+                // By setting typeNumber to 0, the library will automatically select the smallest
+                // QR code version that fits the data. This allows for longer text and non-ASCII characters.
+                const typeNumber = 0;
                 const errorCorrectionLevel = 'L';
                 const qr = qrcode(typeNumber, errorCorrectionLevel);
                 qr.addData(text);
                 qr.make();
-                qrCodeContainer.innerHTML = qr.createImgTag(6, 8); // (cellSize, margin)
+                // Using a smaller cell size to ensure larger QR codes can fit in the container.
+                qrCodeContainer.innerHTML = qr.createImgTag(4, 8); // (cellSize, margin)
             } catch (e) {
-                qrCodeContainer.innerHTML = `<p style="color: red;">Could not generate QR code. Text may be too long.</p>`;
+                qrCodeContainer.innerHTML = `<p style="color: red;">Could not generate QR code. The text may be too long.</p>`;
             }
         } else {
             qrCodeContainer.innerHTML = `<p style="color: orange;">Please enter text to generate a QR code.</p>`;
