@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Management</title>
+    <?!= include('style.css.html'); ?>
+  </head>
+  <body>
+    <div class="container">
+      <div class="tabs">
+        <button class="tab-button active" onclick="openTab('stock-in')">รับเข้า</button>
+        <button class="tab-button" onclick="openTab('stock-out')">เบิกออก</button>
+      </div>
+
+      <div id="stock-in" class="tab-content active">
+        <h2>บันทึกรับเข้า</h2>
+        <form id="stock-in-form">
+          <label for="item-name">Items:</label>
+          <input type="text" id="item-name" required>
+          <label for="item-quantity">จำนวน:</label>
+          <input type="number" id="item-quantity" required min="1">
+          <button type="submit">บันทึก</button>
+        </form>
+        <div id="stock-in-status"></div>
+      </div>
+
+      <div id="stock-out" class="tab-content">
+        <h2>บันทึกเบิกออก</h2>
+        <div id="qr-reader" style="width: 100%;"></div>
+        <div class="manual-input">
+          <label for="qr-code-manual">หรือกรอกรหัส QR Code:</label>
+          <input type="text" id="qr-code-manual">
+          <button type="button" id="manual-search-btn">ค้นหา</button>
+        </div>
+        <div id="item-details" style="display: none;">
+          <p><strong>รหัส:</strong> <span id="scanned-code"></span></p>
+          <p><strong>คงเหลือ:</strong> <span id="remaining-quantity"></span></p>
+          <form id="stock-out-form">
+            <label for="withdraw-quantity">จำนวนที่ต้องการเบิก:</label>
+            <input type="number" id="withdraw-quantity" required min="1">
+            <button type="submit">ยืนยันการเบิก</button>
+          </form>
+        </div>
+        <div id="stock-out-status"></div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <?!= include('script.js.html'); ?>
+  </body>
+</html>

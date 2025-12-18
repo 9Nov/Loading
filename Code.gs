@@ -5,8 +5,11 @@ const STOCK_IN_LOG_SHEET_NAME = "บันทึกรับเข้า";
 const STOCK_OUT_LOG_SHEET_NAME = "บันทึกเบิกออก";
 
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('index.html')
-      .setTitle('Stock Management App');
+  // Use a template to allow including CSS and JS files
+  const template = HtmlService.createTemplateFromFile('index');
+  return template.evaluate()
+      .setTitle('Stock Management App')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // Important for modern browsers
 }
 
 /**
@@ -46,6 +49,16 @@ function recordStockIn(itemName, quantity) {
   } catch (e) {
     return { status: "error", message: e.message };
   }
+}
+
+/**
+ * Includes the content of an HTML file (like CSS or JS).
+ * This is a standard Apps Script technique for including external files.
+ * @param {string} filename The name of the file to include.
+ * @returns {string} The content of the file.
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
