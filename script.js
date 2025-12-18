@@ -1,0 +1,184 @@
+// Ensure the first tab is active on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Set the first tab as active
+  const firstTabButton = document.querySelector('.tab-button');
+  if(firstTabButton) {
+    // Manually set active states without triggering click's event object
+    openTab(firstTabButton.getAttribute('onclick').match(/'([^']+)'/)[1], firstTabButton);
+  }
+
+  // --- Stock In Form Logic ---
+  const stockInForm = document.getElementById('stock-in-form');
+  const stockInStatus = document.getElementById('stock-in-status');
+
+  stockInForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const submitButton = stockInForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    stockInStatus.textContent = 'กำลังบันทึก...';
+    stockInStatus.style.color = '#4a5568';
+
+    const itemName = document.getElementById('item-name').value.trim();
+    const quantity = parseInt(document.getElementById('item-quantity').value, 10);
+
+    if (!itemName || isNaN(quantity) || quantity <= 0) {
+      stockInStatus.textContent = 'กรุณากรอกข้อมูลให้ถูกต้อง';
+      stockInStatus.style.color = 'red';
+      submitButton.disabled = false;
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler((response) => {
+        stockInStatus.textContent = response.message;
+        stockInStatus.style.color = response.status === 'success' ? 'green' : 'red';
+        if (response.status === 'success') {
+          stockInForm.reset();
+        }
+        submitButton.disabled = false;
+      })
+      .withFailureHandler((error) => {
+        stockInStatus.textContent = `Error: ${error.message}`;
+        stockInStatus.style.color = 'red';
+        submitButton.disabled = false;
+      })
+      .recordStockIn(itemName, quantity);
+  });
+
+  // --- Stock Out Logic ---
+  const stockOutStatus = document.getElementById('stock-out-status');
+  const itemDetailsDiv = document.getElementById('item-details');
+  const scannedCodeSpan = document.getElementById('scanned-code');
+  const remainingQuantitySpan = document.getElementById('remaining-quantity');
+  const manualSearchBtn = document.getElementById('manual-search-btn');
+  const manualInput = document.getElementById('qr-code-manual');
+
+  let html5QrCode;
+
+  function onScanSuccess(decodedText, decodedResult) {
+    // Stop scanning after a successful scan.
+    stopScanner();
+    handleItemSearch(decodedText);
+  }
+
+  function handleItemSearch(itemCode) {
+    stockOutStatus.textContent = 'กำลังค้นหา...';
+    stockOutStatus.style.color = '#4a5568';
+    itemDetailsDiv.style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(response => {
+        if (response.status === 'success') {
+          stockOutStatus.textContent = '';
+          scannedCodeSpan.textContent = response.itemCode;
+          remainingQuantitySpan.textContent = response.remainingQuantity;
+          itemDetailsDiv.style.display = 'block';
+        } else {
+          stockOutStatus.textContent = response.message;
+          stockOutStatus.style.color = 'red';
+        }
+      })
+      .withFailureHandler(error => {
+        stockOutStatus.textContent = `Error: ${error.message}`;
+        stockOutStatus.style.color = 'red';
+      })
+      .getItemDetails(itemCode);
+  }
+
+  manualSearchBtn.addEventListener('click', () => {
+    const itemCode = manualInput.value.trim();
+    if (itemCode) {
+      handleItemSearch(itemCode);
+    } else {
+      stockOutStatus.textContent = 'กรุณากรอกรหัส';
+      stockOutStatus.style.color = 'red';
+    }
+  });
+
+  window.startScanner = function() {
+    if (Html5Qrcode && !html5QrCode) {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          onScanSuccess,
+          (errorMessage) => { /* ignore */ }
+        ).catch((err) => {
+          stockOutStatus.textContent = "ไม่สามารถเปิดกล้องได้";
+          stockOutStatus.style.color = 'red';
+        });
+    }
+  }
+
+  window.stopScanner = function() {
+      if (html5QrCode && html5QrCode.isScanning) {
+          html5QrCode.stop().catch(err => console.error("Failed to stop scanner.", err));
+          html5QrCode = null;
+      }
+  }
+
+    // --- Stock Out Form Submission ---
+  const stockOutForm = document.getElementById('stock-out-form');
+  stockOutForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const submitButton = stockOutForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    stockOutStatus.textContent = 'กำลังบันทึก...';
+    stockOutStatus.style.color = '#4a5568';
+
+    const itemCode = scannedCodeSpan.textContent;
+    const quantity = parseInt(document.getElementById('withdraw-quantity').value, 10);
+
+    if (!itemCode || isNaN(quantity) || quantity <= 0) {
+      stockOutStatus.textContent = 'กรุณากรอกข้อมูลให้ถูกต้อง';
+      stockOutStatus.style.color = 'red';
+      submitButton.disabled = false;
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(response => {
+        stockOutStatus.textContent = response.message;
+        stockOutStatus.style.color = response.status === 'success' ? 'green' : 'red';
+        if (response.status === 'success') {
+          stockOutForm.reset();
+          itemDetailsDiv.style.display = 'none';
+          manualInput.value = '';
+          // Restart scanner for next item
+          setTimeout(() => window.startScanner(), 100);
+        }
+        submitButton.disabled = false;
+      })
+      .withFailureHandler(error => {
+        stockOutStatus.textContent = `Error: ${error.message}`;
+        stockOutStatus.style.color = 'red';
+        submitButton.disabled = false;
+      })
+      .recordStockOut(itemCode, quantity);
+  });
+});
+
+function openTab(tabName, element) {
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabContents.forEach(content => {
+    content.classList.remove('active');
+    content.style.display = 'none';
+  });
+
+  const tabButtons = document.querySelectorAll('.tab-button');
+  tabButtons.forEach(button => {
+    button.classList.remove('active');
+  });
+
+  const activeContent = document.getElementById(tabName);
+  activeContent.style.display = 'block';
+  activeContent.classList.add('active');
+  element.classList.add('active');
+
+  if (tabName === 'stock-out') {
+    // Use timeout to ensure the div is visible before starting the scanner
+    setTimeout(() => window.startScanner(), 100);
+  } else {
+    window.stopScanner();
+  }
+}
